@@ -1,32 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const connection = require("../database/database");
-const nodemailer = require("nodemailer");
-const { SECRET_KEY, EMAIL_USER, EMAIL_PASS, SMTP_HOST, SMTP_PORT } = process.env;
+const transporter = require("../common/emailTransporter");
 const emailLayout = require("./EmailLayout");
-
-// Configure Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  host: SMTP_HOST,
-  port: 465,
-  secure: true, // Gunakan 'true' jika port 465, 'false' jika port lain
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-});
-
-// Verify transporter connection
-transporter.verify(function (error, success) {
-  if (error) {
-    console.error("Error verifying transporter:", error);
-  } else {
-    console.log("Server is ready to take our messages");
-  }
-});
+const services = require("../services");
+const { ENV, SECRET_KEY } = process.env;
 
 module.exports = {
   // Register user
@@ -35,19 +12,34 @@ module.exports = {
       const { email, password } = req.body;
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // Check if email or password is empty
+      if (!email || !password) {
+        return res.status(400).send({ error: true, message: "Email or password is empty" });
+      }
+
       // Check if email is already used
-      const [resultEmail] = await connection.execute("SELECT * FROM pengguna WHERE email = ?", [email]);
-      if (resultEmail.length > 0) {
+      const findUserByCriteria = await services.users.findUsers({
+        name: "email",
+        value: email,
+      });
+
+      if (findUserByCriteria !== null) {
         return res.status(400).send({ error: true, message: "Email already used" });
       }
 
       // Insert email and hashed password into database
-      const [result] = await connection.execute("INSERT INTO pengguna (email, password, aktif) VALUES (?, ?, ?)", [email, hashedPassword, false]);
-      const userId = result.insertId;
+      const createNewUser = await services.users.createUser({ email, password: hashedPassword });
+
+      const userId = createNewUser.id;
 
       // Generate verification token
       const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "24h" });
-      const verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
+      let verificationUrl = "";
+      if (ENV === "development") {
+        verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
+      } else {
+        verificationUrl = `https://portal.sidera.my.id/#/email-verify/${token}`;
+      }
 
       let message = {
         from: "noreply@sidera.my.id",
@@ -73,23 +65,37 @@ module.exports = {
   resendEmail: async (req, res) => {
     try {
       const { email } = req.body;
-      const [result] = await connection.execute("SELECT * FROM pengguna WHERE email = ?", [email]);
 
-      // Check if user is not found
-      if (result.length === 0) {
-        return res.status(404).send({ error: true, message: "User not found", data: {} });
+      // Check if email is empty
+      if (!email) {
+        return res.status(400).send({ error: true, message: "Email is empty" });
       }
 
-      // Check if email is already verified
-      if (result[0].aktif) {
+      // find user by email
+      const findUserByCriteria = await services.users.findUsers({
+        name: "email",
+        value: email,
+      });
+
+      // Check if email is not found
+      if (findUserByCriteria === null) {
+        return res.status(404).send({ error: true, message: "User not found", data: {} });
+      }
+      // check if email is already verified
+      if (findUserByCriteria.verified === 1) {
         return res.status(400).send({ error: true, message: "Email already verified", data: { active: 1 } });
       }
 
-      const userId = result[0].id;
+      const userId = findUserByCriteria.id;
 
-      console.log(userId, "userId");
+      // Generate verification token
       const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "24h" });
-      const verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
+      let verificationUrl = "";
+      if (ENV === "development") {
+        verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
+      } else {
+        verificationUrl = `https://portal.sidera.my.id/#/email-verify/${token}`;
+      }
 
       let message = {
         from: "noreply@sidera.my.id",
@@ -117,21 +123,22 @@ module.exports = {
       const { token } = req.query;
       const { userId } = jwt.verify(token, SECRET_KEY);
 
-      const [result] = await connection.execute("SELECT * FROM pengguna WHERE id = ?", [userId]);
-
       // check if token is invalid
       if (!userId) {
         return res.status(400).send({ error: true, message: "Invalid token", data: {} });
       }
 
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: userId });
+
       // check if user is already verified
-      if (result[0].aktif) {
+      if (findUserByCriteria.aktif) {
         return res.status(400).send({ error: true, message: "Email already verified", data: {} });
       }
 
-      // Update user to verified
-      await connection.execute("UPDATE pengguna SET aktif = true WHERE id = ?", [userId]);
-      res.status(200).send({ error: false, message: "Email verified", data: { email: result[0].email } });
+      // update user to verified
+      await services.users.updateUser({ name: "id", value: findUserByCriteria.id }, { aktif: 1 });
+
+      res.status(200).send({ error: false, message: "Email verified", data: { email: findUserByCriteria.email } });
     } catch (error) {
       console.error("Error verifying email:", error);
       res.status(400).send({ error: true, message: "Invalid token" });
@@ -142,23 +149,29 @@ module.exports = {
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
-      const [result] = await connection.execute("SELECT * FROM pengguna WHERE email = ?", [email]);
-      const user = result[0];
 
+      console.log(email, password, "email, password");
+      const findUserByCriteria = await services.users.findUsers({ name: "email", value: email });
+
+      console.log(findUserByCriteria, "findUserByCriteria");
       // Check if user is not found
-      if (!user) {
-        return res.status(404).send({ error: true, message: "Invalid email or password", data: { active: false } });
+      if (findUserByCriteria === null) {
+        return res.status(401).send({ error: true, message: "Invalid email or password", data: { active: false } });
       }
 
       // Compare passwords
-      const passwordMatch = await bcrypt.compare(password, user.password);
+      const passwordMatch = await bcrypt.compare(password, findUserByCriteria.password);
       if (passwordMatch) {
         // Check if email is verified
-        if (!user.aktif) {
-          return res.status(401).send({ error: true, message: "Email not verified", data: { active: false, email: user.email } });
+        if (!findUserByCriteria.aktif) {
+          return res.status(401).send({ error: true, message: "Email not verified", data: { active: false, email: findUserByCriteria.email } });
         }
 
-        const token = jwt.sign({ userId: user.id, email: user.email }, SECRET_KEY, { expiresIn: "1h" });
+        const token = jwt.sign({ userId: findUserByCriteria.id, email: findUserByCriteria.email }, SECRET_KEY, { expiresIn: "1h" });
+
+        const saveSession = await services.users.saveSession({ name: "id", value: findUserByCriteria.id }, { session: token });
+
+        if (saveSession === null) return res.status(500).send({ error: true, message: "Internal server error" });
 
         // set cookie
         res.cookie("sessionToken", token, {
@@ -169,11 +182,12 @@ module.exports = {
         });
 
         // send respons
-        res.status(200).send({ error: false, message: "Login success", data: { active: true, token: token } });
+        res.status(200).send({ error: false, message: "Login success", data: { active: findUserByCriteria.aktif, token: token } });
       } else {
         res.status(401).send({ error: true, message: "Invalid email or password", data: { active: false } });
       }
     } catch (error) {
+      console.log(error, "error");
       res.status(500).send({ error: true, message: "Internal server error" });
     }
   },
@@ -182,18 +196,21 @@ module.exports = {
   resetPassword: async (req, res) => {
     try {
       const { email } = req.body;
-      const [result] = await connection.execute("SELECT * FROM pengguna WHERE email = ?", [email]);
-      const user = result[0];
+
+      const findUserByCriteria = await services.users.findUsers({ name: "email", value: email });
 
       // Check if user is not found
       if (!user) {
-        return res.status(404).send({ error: true, message: "User not found" });
+        return res.status(200).send({ error: false, message: "Password reset success if email correct you will receive in your inbox." });
       }
-
-      const userId = user.id;
+      const userId = findUserByCriteria.id;
       const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "5m" });
-      const resetPasswordUrl = `http://localhost:4200/#/reset-password/${token}`;
-
+      const resetPasswordUrl = "";
+      if (ENV === "development") {
+        resetPasswordUrl = `http://localhost:4200/#/reset-password/${token}`;
+      } else {
+        resetPasswordUrl = `https://portal.sidera.my.id/#/reset-password/${token}`;
+      }
       // Send reset password email
       await transporter.sendMail({
         to: email,
@@ -203,7 +220,7 @@ module.exports = {
 
       res.status(200).send({
         error: false,
-        message: "Password reset email sent",
+        message: "Password reset success if email correct you will receive in your inbox.",
         data: resetPasswordUrl,
       });
     } catch (error) {
@@ -212,6 +229,7 @@ module.exports = {
     }
   },
 
+  // check user session token validity
   sessionToken: async (req, res) => {
     try {
       //remove sessionToken= from cookie
@@ -223,17 +241,32 @@ module.exports = {
       }
       const decoded = jwt.verify(sessionToken, SECRET_KEY);
 
-      const [result] = await connection.execute("SELECT * FROM pengguna WHERE id = ?", [decoded.userId]);
-      const user = result[0];
+      if (!decoded) return res.status(401).send({ error: true, message: "Session token invalid", data: {} });
+
+      // if jwt is expired
+      if (decoded.exp < Date.now().valueOf() / 1000) {
+        return res.status(401).send({ error: true, message: "Token expired" });
+      }
+
+      // find user by id
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: decoded.userId });
 
       // Determine account status based on nomor_ktp
-      const active = user.active === 1;
-      const verified = user.verified === 1;
+      const active = findUserByCriteria.active;
+      const verified = findUserByCriteria.verified === 1;
 
       res.status(200).send({
         error: false,
         message: "Session token valid",
-        data: { active: active, verified: verified, email: user.email },
+        data: {
+          id: findUserByCriteria.id,
+          active: findUserByCriteria.aktif,
+          verified: findUserByCriteria.verified,
+          role: findUserByCriteria.role,
+          email: findUserByCriteria.email,
+          nik: findUserByCriteria.nomor_ktp,
+          nkk: findUserByCriteria?.penduduk?.nomor_kk,
+        },
       });
     } catch (error) {
       // remove cookie
@@ -242,6 +275,7 @@ module.exports = {
     }
   },
 
+  // logout
   logout: async (req, res) => {
     // remove cookie
     try {
@@ -259,13 +293,30 @@ module.exports = {
   // menu list
   getMenu: async (req, res) => {
     try {
-      const [fetchUserData] = await connection.execute("SELECT * FROM pengguna WHERE id = ?", [req.userId]);
-      const userData = fetchUserData[0];
-      const [result] = await connection.execute("SELECT * FROM menu WHERE access <= ?", [userData.role]);
+      // console.log(req.userId, "req.userId");
+      if (!req.userId) {
+        return res.status(401).send({ error: true, message: "Unauthorized", data: {} });
+      }
+
+      // find user
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: req.userId });
+
+      // if user not found
+      if (findUserByCriteria === null) {
+        return res.status(404).send({ error: true, message: "User not found", data: {} });
+      }
+
+      // get user menu
+      const getUserMenu = await services.menu.getUserMenus(findUserByCriteria.role);
+
+      if (getUserMenu === null) {
+        return res.status(404).send({ error: true, message: "Menu not found", data: {} });
+      }
+
       res.status(200).send({
         error: false,
         message: "Get menu success",
-        data: { menu: result },
+        data: { menu: getUserMenu },
       });
     } catch (error) {
       console.log(error, "error");
@@ -273,45 +324,33 @@ module.exports = {
     }
   },
 
-  requestDataVerification: async (req, res) => {
+  // user notification
+  getNotification: async (req, res) => {
     try {
-      const { ktp, ktpNumber, kkNumber, name, birthDate, birthPlace, address, religion, maritalStatus, job, rt, rw } = req.body;
+      if (!req.userId) {
+        return res.status(401).send({ error: true, message: "Unauthorized", data: {} });
+      }
 
-      const foto_diri = req.files["foto_diri"] ? req.files["foto_diri"][0].filename : null;
-      const foto_ktp = req.files["foto_ktp"] ? req.files["foto_ktp"][0].filename : null;
-      const foto_kk = req.files["foto_kk"] ? req.files["foto_kk"][0].filename : null;
+      // find user
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: req.userId });
 
-      // Check if user is not found
-      const [result] = await connection.execute("SELECT * FROM pengguna WHERE id = ?", [req.userId]);
-      if (result.length === 0) {
+      // if user not found
+      if (findUserByCriteria === null) {
         return res.status(404).send({ error: true, message: "User not found", data: {} });
       }
 
-      // Insert to database table verification
-      const [insertResult] = await connection.execute(
-        `INSERT INTO verification (
-          foto_diri, foto_ktp, foto_kk, nomor_ktp, nomor_kk, nama, tanggal_lahir, tempat_lahir, alamat, agama, RT, RW, pekerjaan, status_perkawinan, id_pengguna
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [foto_diri, foto_ktp, foto_kk, ktpNumber, kkNumber, name, birthDate, birthPlace, address, religion, rt, rw, job, maritalStatus, req.userId]
-      );
+      // get user notification
+      const getUserNotification = await services.notification.getUserNotifications(findUserByCriteria.id);
 
-      res.send({ error: false, message: "Request data verification success", data: insertResult });
-    } catch (error) {
-      console.log(error, "error");
-      res.status(500).send({ error: true, message: "Internal server error", data: {} });
-    }
-  },
-
-  checkVerificationStatus: async (req, res) => {
-    try {
-      const [result] = await connection.execute("SELECT * FROM verification WHERE id_pengguna = ?", [req.userId]);
-      if (result.length === 0) {
-        return res.status(404).send({ error: true, message: "Verification data not found", data: {} });
+      if (getUserNotification === null) {
+        return res.status(404).send({ error: true, message: "Notification not found", data: {} });
       }
 
-      res
-        .status(200)
-        .send({ error: false, message: "Verification data found", data: { verificationStatus: result[0].status, notes: result[0].notes } });
+      res.status(200).send({
+        error: false,
+        message: "Get notification success",
+        data: { notification: getUserNotification },
+      });
     } catch (error) {
       console.log(error, "error");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });
