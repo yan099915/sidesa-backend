@@ -16,11 +16,5 @@ router.get("/request-history", middleware.isAuth, requestControllers.getUserRequ
 router.get("/requests", middleware.isAdmin, requestControllers.getRequests);
 router.get("/request-details", middleware.isAuth, requestControllers.requestDetails);
 router.post("/request", middleware.isAuth, upload.fields([{ name: "surat_rs", maxCount: 1 }]), requestControllers.createRequest);
-router.post(
-  "/request-update",
-  middleware.isAdmin,
-  upload.fields([{ name: "surat", maxCount: 1 }]),
-  //   checkFileExists,
-  requestControllers.updateRequest
-);
+router.post("/request-update", middleware.isAdmin, upload.fields([{ name: "surat", maxCount: 1 }]), requestControllers.updateRequest);
 module.exports = router;

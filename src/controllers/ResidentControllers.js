@@ -4,9 +4,9 @@ const { SECRET_KEY } = process.env;
 module.exports = {
   getAllResidents: async (req, res) => {
     try {
-      const { page, limit, search } = req.query;
+      const { page, limit, search, dusun } = req.query;
 
-      const findResidentData = await services.resident.getAllResidents(page, limit, search);
+      const findResidentData = await services.resident.getAllResidents(page, limit, search, dusun);
       if (findResidentData.length === 0) {
         return res.status(204).send({ error: false, message: "Resident data not found" });
       }
@@ -28,9 +28,10 @@ module.exports = {
       if (!nik) {
         return res.status(400).send({ error: true, message: "Nik is required" });
       }
+      console.log(nik, "nik", typeof nik);
+      const findResidentData = await services.resident.findResidents({ name: "nomor_ktp", value: nik.toString() });
 
-      const findResidentData = await services.resident.findResidents({ name: "nomor_ktp", value: nik });
-
+      // console.log(findResidentData, "findResidentData");
       if (findResidentData === null) {
         return res.status(204).send({ error: true, message: "Resident data not found" });
       }
@@ -63,6 +64,7 @@ module.exports = {
         pekerjaan,
         rt,
         rw,
+        dusun,
       } = req.body;
 
       // check any required data is empty
@@ -80,6 +82,7 @@ module.exports = {
         "pekerjaan",
         "rt",
         "rw",
+        "dusun",
       ];
       let missingFields = [];
 
@@ -115,6 +118,7 @@ module.exports = {
         pekerjaan,
         rt,
         rw,
+        dusun,
       };
 
       // create new resident data
@@ -132,6 +136,107 @@ module.exports = {
       });
     } catch (error) {
       console.log(error, "error");
+      res.status(500).send({ error: true, message: "Internal server error" });
+    }
+  },
+
+  // update resident data
+  updateResident: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        nomor_ktp,
+        nomor_kk,
+        nama,
+        jenis_kelamin,
+        tempat_lahir,
+        tanggal_lahir,
+        alamat,
+        agama,
+        status_perkawinan,
+        golongan_darah,
+        pekerjaan,
+        rt,
+        rw,
+        dusun,
+      } = req.body;
+
+      // check if id value is empty
+      if (!id) {
+        return res.status(400).send({ error: true, message: "Id is required" });
+      }
+
+      const findResidentData = await services.resident.findResidents({ name: "id", value: id });
+      // console.log(findResidentData, "findResidentData");
+      if (findResidentData === null) {
+        return res.status(204).send({ error: false, message: "Resident data not found" });
+      }
+
+      const data = {
+        nomor_ktp,
+        nomor_kk,
+        nama,
+        jenis_kelamin,
+        tempat_lahir,
+        tanggal_lahir,
+        alamat,
+        agama,
+        status_perkawinan,
+        golongan_darah,
+        pekerjaan,
+        rt,
+        rw,
+        dusun,
+      };
+
+      // update resident data
+      const updateResidentData = await services.resident.updateResident(data, { name: "id", value: id });
+      // console.log(updateResidentData, "updateResidentData");
+
+      if (updateResidentData[0] === 0) {
+        return res.status(400).send({ error: true, message: "Failed to update resident data" });
+      }
+
+      res.status(200).send({
+        error: false,
+        message: "Update resident data success",
+        data: data,
+      });
+    } catch (error) {
+      res.status(500).send({ error: true, message: "Internal server error" });
+    }
+  },
+
+  // delete resident data
+  deleteResident: async (req, res) => {
+    try {
+      console.log(req.params);
+      const { id } = req.params;
+
+      // check if id value is empty
+      if (!id) {
+        return res.status(400).send({ error: true, message: "Id is required" });
+      }
+
+      const findResidentData = await services.resident.findResidents({ name: "id", value: id });
+      // console.log(findResidentData, "findResidentData");
+      if (findResidentData === null) {
+        return res.status(204).send({ error: false, message: "Resident data not found" });
+      }
+
+      // delete resident data
+      const deleteResidentData = await services.resident.deleteResident({ name: "id", value: id });
+      // console.log(deleteResidentData, "deleteResidentData");
+
+      if (deleteResidentData === 0) {
+        return res.status(400).send({ error: true, message: "Failed to delete resident data" });
+      }
+
+      res.status(200).send({
+        error: false,
+        message: "Delete resident data success",
+      });
+    } catch (error) {
       res.status(500).send({ error: true, message: "Internal server error" });
     }
   },

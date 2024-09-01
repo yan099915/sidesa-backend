@@ -67,6 +67,7 @@ module.exports = {
       req.userId = decoded.userId;
       next();
     } catch (error) {
+      // throw error;
       return res.status(401).send({ error: true, message: "Unauthorized" });
     }
   },

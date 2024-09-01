@@ -122,7 +122,7 @@ module.exports = {
         transaction,
       });
 
-      console.log(findVerification, "findVerification!!!!!!!!!!!!!!!!!!!!!!!!!");
+      // console.log(findVerification, "findVerification!!!!!!!!!!!!!!!!!!!!!!!!!");
 
       if (!findVerification) {
         await transaction.rollback();
@@ -143,7 +143,7 @@ module.exports = {
         transaction,
       });
 
-      console.log(findPengguna, "findPengguna!!!!!!!!!!!!!!!!!!!!!!!!!");
+      // console.log(findPengguna, "findPengguna!!!!!!!!!!!!!!!!!!!!!!!!!");
       if (!findPengguna) {
         console.log("rollback !!!!!!!!!!!!!!!");
         await transaction.rollback();
@@ -158,7 +158,7 @@ module.exports = {
         transaction,
       });
 
-      console.log(findPenggunaByNomorKtp, "findPenggunaNoKTP!!!!!!!!!!!!!!!!!!!!!!!!!");
+      // console.log(findPenggunaByNomorKtp, "findPenggunaNoKTP!!!!!!!!!!!!!!!!!!!!!!!!!");
       // console.log(findPenggunaByNomorKtp, "findPenggunaByNomorKtp");
 
       if (findPenggunaByNomorKtp && findPenggunaByNomorKtp.id !== findVerification.id_pengguna) {
@@ -196,7 +196,7 @@ module.exports = {
         transaction,
       });
 
-      console.log(findPenduduk, "findPenduduk!!!!!!!!!!!!!!!!!!!!!!!!!");
+      // console.log(findPenduduk, "findPenduduk!!!!!!!!!!!!!!!!!!!!!!!!!");
 
       //remove id from findVerification.get()
       delete findVerification.get().id;
@@ -208,6 +208,7 @@ module.exports = {
         await Penduduk.create(findVerification.get(), { transaction });
         await Keluarga.create({ nomor_kk: findVerification.nomor_kk, rt: findVerification.rt, rw: findVerification.rw }, { transaction });
       } else if (findPenduduk !== null && data.status === 2) {
+        await Keluarga.create({ nomor_kk: findVerification.nomor_kk, rt: findVerification.rt, rw: findVerification.rw }, { transaction });
         console.log("UPDATE PENDUDUK");
         await Penduduk.update(findVerification.get(), {
           where: {

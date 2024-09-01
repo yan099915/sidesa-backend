@@ -52,6 +52,9 @@ module.exports = (sequelize, DataTypes) => {
       nomor_ktp: {
         type: DataTypes.STRING,
       },
+      nomor_kk: {
+        type: DataTypes.STRING,
+      },
       aktif: {
         type: DataTypes.BOOLEAN,
       },

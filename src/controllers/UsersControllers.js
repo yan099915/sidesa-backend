@@ -148,12 +148,12 @@ module.exports = {
   // User login
   login: async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { email, password, remember } = req.body;
 
-      console.log(email, password, "email, password");
+      // console.log(email, password, "email, password");
       const findUserByCriteria = await services.users.findUsers({ name: "email", value: email });
 
-      console.log(findUserByCriteria, "findUserByCriteria");
+      // console.log(findUserByCriteria, "findUserByCriteria");
       // Check if user is not found
       if (findUserByCriteria === null) {
         return res.status(401).send({ error: true, message: "Invalid email or password", data: { active: false } });
@@ -167,7 +167,9 @@ module.exports = {
           return res.status(401).send({ error: true, message: "Email not verified", data: { active: false, email: findUserByCriteria.email } });
         }
 
-        const token = jwt.sign({ userId: findUserByCriteria.id, email: findUserByCriteria.email }, SECRET_KEY, { expiresIn: "1h" });
+        const rememberMe = remember === true ? "1d" : "1h";
+        // Generate token
+        const token = jwt.sign({ userId: findUserByCriteria.id, email: findUserByCriteria.email }, SECRET_KEY, { expiresIn: rememberMe });
 
         const saveSession = await services.users.saveSession({ name: "id", value: findUserByCriteria.id }, { session: token });
 

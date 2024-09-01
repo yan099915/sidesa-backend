@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:4200", "https://portal.sidera.my.id"], // Ganti dengan URL frontend Anda
+    origin: ["http://localhost:4200", "http://localhost:4300", "https://portal.sidera.my.id", "https://sidera.my.id"], // Ganti dengan URL frontend Anda
     credentials: true, // Mengizinkan pengiriman cookie
   })
 );
@@ -32,6 +32,10 @@ app.use(router.FamilyRouter);
 app.use(router.RequestRouter);
 app.use(router.NotificationRouter);
 app.use(router.EmergencyRouter);
+app.use(router.ArticleRouter);
+app.use(router.PublicRouter);
+app.use(router.AnnouncementRouter);
+app.use(router.ReportRouter);
 
 const io = new Server(server, {
   cors: {
@@ -47,12 +51,12 @@ io.on("connection", (socket) => {
   const { id, role } = socket.handshake.auth;
 
   clients[id] = { socketId: socket.id, role: role };
-  console.log(`User ${id} with role ${role} connected with socket id ${socket.id}`);
+  // console.log(`User ${id} with role ${role} connected with socket id ${socket.id}`);
 
-  console.log(clients, "clients");
+  // console.log(clients, "clients");
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    // console.log("Client disconnected:", socket.id);
     delete clients[id];
   });
 });

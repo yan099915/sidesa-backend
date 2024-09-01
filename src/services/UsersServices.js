@@ -29,16 +29,16 @@ module.exports = {
   },
 
   // find verified user by dynamic criteria
-  findVerifiedUsers: async (nomor_ktp) => {
+  findVerifiedUsers: async (criteria) => {
     try {
       // check if nomor_ktp is already been used by another pengguna
-      const findPenggunaByNomorKtp = await Pengguna.findOne({
+      const findVerifiedUsers = await Pengguna.findOne({
         where: {
-          [Op.and]: [{ nomor_ktp: nomor_ktp }, { verified: true }],
+          [Op.and]: [{ [criteria.name]: criteria.value }, { verified: true }],
         },
       });
 
-      return findPenggunaByNomorKtp;
+      return findVerifiedUsers;
     } catch (error) {
       console.log(error, "error");
       throw error;

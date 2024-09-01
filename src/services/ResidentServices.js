@@ -2,7 +2,7 @@ const { Penduduk, Keluarga, sequelize } = require("../models");
 const { Op, where } = require("sequelize");
 module.exports = {
   //   get all residents
-  getAllResidents: async (page, pageSize, search) => {
+  getAllResidents: async (page, pageSize, search, dusun) => {
     try {
       // Set default values for page and pageSize
       if (!page || !pageSize) {
@@ -24,13 +24,17 @@ module.exports = {
         ];
       }
 
+      if (dusun) {
+        where.dusun = dusun;
+      }
+
       //   count total residents
       const totalResidents = await Penduduk.count({
         where: where,
       });
 
       const residents = await Penduduk.findAll({
-        attributes: ["id", "nama", "nomor_ktp", "nomor_kk"], // Ensure these attributes are included
+        attributes: ["id", "nama", "nomor_ktp", "nomor_kk", "dusun"], // Ensure these attributes are included
         order: [["created_at", "DESC"]],
         limit: Number(pageSize),
         offset: Number(offset),
@@ -120,6 +124,23 @@ module.exports = {
         },
       });
       return updateResident;
+    } catch (error) {
+      return error;
+    }
+  },
+
+  //   delete resident by dynamic criteria
+  deleteResident: async (criteria) => {
+    try {
+      // delete resident with dynamic criteria
+      const deleteResident = await Penduduk.destroy({
+        where: {
+          [criteria.name]: {
+            [Op.eq]: criteria.value,
+          },
+        },
+      });
+      return deleteResident;
     } catch (error) {
       return error;
     }

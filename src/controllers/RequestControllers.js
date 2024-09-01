@@ -239,12 +239,7 @@ module.exports = {
       const findRequestData = await services.request.findRequests({ name: "id", value: id });
 
       if (findRequestData === null) {
-        console.log(findRequestData, "neulll neull");
         return res.status(204).send({ error: false, message: "Request data not found" });
-      }
-
-      if (findRequestData.id_pengguna !== userId) {
-        return res.status(204).send({ error: false, message: "Unauthorized" });
       }
 
       const updateRequestData = await services.request.updateRequest(

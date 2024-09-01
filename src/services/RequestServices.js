@@ -136,7 +136,6 @@ module.exports = {
         throw new Error("Criteria name and value are required");
       }
 
-      // console.log("sampai sini");
       // find request with dynamic criteria
       const findRequest = await Pengajuan.findOne({
         where: {

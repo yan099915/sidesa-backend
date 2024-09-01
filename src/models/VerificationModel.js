@@ -86,6 +86,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      dusun: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       pekerjaan: {
         type: DataTypes.STRING,
         allowNull: false,

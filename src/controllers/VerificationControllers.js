@@ -1,5 +1,6 @@
 const services = require("../services");
 const logger = require("../common/logger");
+const moment = require("moment");
 
 module.exports = {
   // request data verification
@@ -23,6 +24,7 @@ module.exports = {
         pendidikan,
         rt,
         rw,
+        dusun,
       } = req.body;
 
       const foto_diri = req.files["foto_diri"] ? req.files["foto_diri"][0].filename : null;
@@ -35,11 +37,15 @@ module.exports = {
         return res.status(404).send({ error: true, message: "User not found", data: {} });
       }
 
-      //check if already user has verified status with the same nomor_ktp
-      const findPenggunaByNomorKtp = await services.users.findVerifiedUsers(ktpNumber);
-
+      //check if already user has verified status with the same nomor_ktp or nomor_kk
+      const findPenggunaByNomorKtp = await services.users.findVerifiedUsers({ name: "nomor_ktp", value: ktpNumber });
       if (findPenggunaByNomorKtp && findPenggunaByNomorKtp.id !== findUserByCriteria.id) {
-        return res.status(400).send({ error: true, message: "Nomor KTP is already been used by another user", data: {} });
+        return res.status(400).send({ error: true, message: "Nomor KTP sudah digunakan", data: {} });
+      }
+
+      const findPenggunaByNomorKK = await services.users.findVerifiedUsers({ name: "nomor_kk", value: kkNumber });
+      if (findPenggunaByNomorKK && findPenggunaByNomorKK.id !== findUserByCriteria.id) {
+        return res.status(400).send({ error: true, message: "Nomor KK sudah digunakan", data: {} });
       }
 
       // insert verification data
@@ -51,7 +57,7 @@ module.exports = {
         nomor_kk: kkNumber,
         nama: name.toUpperCase(),
         jenis_kelamin: jenis_kelamin.toUpperCase(),
-        tanggal_lahir: birthDate,
+        tanggal_lahir: moment(birthDate).format("YYYY-MM-DD"),
         tempat_lahir: birthPlace.toUpperCase(),
         alamat: address.toUpperCase(),
         lat: lat,
@@ -63,6 +69,7 @@ module.exports = {
         pendidikan: pendidikan,
         rt,
         rw,
+        dusun,
         golongan_darah: gdarah.toUpperCase(),
         id_pengguna: findUserByCriteria.id,
         status: 1,
@@ -70,7 +77,7 @@ module.exports = {
 
       res.send({ error: false, message: "Request data verification success", data: insertVerificationData });
     } catch (error) {
-      console.log(error, "error");
+      console.log(error, "error requestDataVerification");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });
     }
   },
@@ -78,10 +85,10 @@ module.exports = {
   // check verification status
   checkVerificationStatus: async (req, res) => {
     try {
-      console.log(req.userId, "req.userId");
+      // console.log(req.userId, "req.userId");
       const findVerificationByCriteria = await services.verification.findVerifications({ name: "id_pengguna", value: req.userId });
 
-      console.log(findVerificationByCriteria, "findVerificationByCriteria");
+      // console.log(findVerificationByCriteria, "findVerificationByCriteria");
       if (findVerificationByCriteria === null) {
         return res.status(204).send({ error: false, message: "Verification data not found", data: {} });
       }
@@ -92,7 +99,7 @@ module.exports = {
         data: findVerificationByCriteria,
       });
     } catch (error) {
-      console.log(error, "error");
+      console.log(error, "error checkVerificationStatus");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });
     }
   },
@@ -106,7 +113,7 @@ module.exports = {
 
       res.send({ error: false, message: "All verifications found", data: allVerifications });
     } catch (error) {
-      console.log(error, "error");
+      console.log(error, "error getAllVerifications");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });
     }
   },
@@ -124,7 +131,7 @@ module.exports = {
 
       res.status(200).send({ error: false, message: "Verification data found", data: findVerificationByCriteria });
     } catch (error) {
-      console.log(error, "error");
+      console.log(error, "error getVerificationDetails");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });
     }
   },
@@ -152,7 +159,7 @@ module.exports = {
       // logger.info(`${updateVerificationData} "updateVerificationData"`);
       res.status(200).send({ error: false, message: "Verification data updated", data: updateVerificationData });
     } catch (error) {
-      console.log(error, "ERRORRRR");
+      console.log(error, "ERRORRRR approveVerification");
       res.status(500).send({ error: true, message: "Internal server error", data: error });
     }
   },

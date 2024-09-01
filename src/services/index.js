@@ -1,3 +1,5 @@
+const { report } = require("../routes/UsersRouters");
+
 // services list
 const services = {
   users: require("./UsersServices"),
@@ -9,6 +11,9 @@ const services = {
   notification: require("./NotificationServices"),
   emergency: require("./EmergencyServices"),
   socket: require("./SocketIOServices"),
+  article: require("./ArticleServices"),
+  announcement: require("./AnnouncementServices"),
+  report: require("./ReportServices"),
 };
 
 module.exports = services;

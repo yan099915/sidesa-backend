@@ -21,7 +21,7 @@ module.exports = {
         ],
       });
 
-      console.log;
+      console.log(family, "family");
       return family;
     } catch (error) {
       return error;

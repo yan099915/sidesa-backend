@@ -21,10 +21,10 @@ io.on("connection", (socket) => {
   clients[id] = { socketId: socket.id, role: role };
   console.log(`User ${id} with role ${role} connected with socket id ${socket.id}`);
 
-  console.log(clients, "clients");
+  // console.log(clients, "clients");
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    // console.log("Client disconnected:", socket.id);
     delete clients[userId];
   });
 });

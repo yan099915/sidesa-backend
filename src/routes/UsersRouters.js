@@ -2,6 +2,7 @@ const router = require("express").Router();
 require("dotenv").config();
 
 const usersControllers = require("../controllers/UsersControllers");
+const residentControllers = require("../controllers/ResidentControllers");
 const middleware = require("../middlewares/authMiddlewares");
 
 router.post("/register", usersControllers.register);
