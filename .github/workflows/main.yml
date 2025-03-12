@@ -27,4 +27,3 @@ jobs:
             **/.git*
             **/.git*/**
             **/node_modules/**
-            fileToExclude.txt
