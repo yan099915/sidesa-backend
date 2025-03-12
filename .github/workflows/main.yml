@@ -22,7 +22,7 @@ jobs:
           server: ${{ secrets.server }}
           username: ${{ secrets.username }}
           password: ${{ secrets.password }}
-          server-dir: public_html/api
+          server-dir: public_html/api/
           exclude: |
             **/.git*
             **/.git*/**
