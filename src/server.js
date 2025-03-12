@@ -9,7 +9,9 @@ const bodyParser = require("body-parser");
 
 // Import router here
 const router = require("./routes");
+const path = require("path");
 
+console.log(__dirname, "dirname");
 const app = express();
 const server = createServer(app);
 
@@ -25,6 +27,11 @@ app.use(
 app.options("*", cors()); // Mengizinkan semua metode dari semua origin
 
 // Active router
+// Gunakan path absolut agar Express bisa menemukan foldernya
+app.use("/files", express.static(path.join(__dirname, "../files")));
+
+// Debugging: cek path yang digunakan
+console.log("Serving static files from:", path.join(__dirname, "../files"));
 app.use(router.UserRouter);
 app.use(router.VerificationRouter);
 app.use(router.ResidentRouter);

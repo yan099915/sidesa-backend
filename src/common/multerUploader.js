@@ -4,6 +4,8 @@ const { ENV } = process.env;
 
 const multer = require("multer");
 
+console.log(ENV, "env");
+
 // Set storage engine for multer
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -17,7 +19,7 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
-    // console.log(file, "file", ext);
+    console.log(file, "file", ext);
     cb(null, Date.now() + ext); // Nama file dengan timestamp
   },
 });
