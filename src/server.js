@@ -21,7 +21,14 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:4200", "http://localhost:4300", "https://portal.desarawang.com", "https://desarawang.com"], // Ganti dengan URL frontend Anda
+    origin: [
+      "http://localhost:4200",
+      "http://localhost:4300",
+      "https://portal.desarawang.com",
+      "https://desarawang.com",
+      "https://www.portal.desarawang.com",
+      "https://www.desarawang.com",
+    ], // Ganti dengan URL frontend Anda
     credentials: true, // Mengizinkan pengiriman cookie
   })
 );
@@ -47,7 +54,7 @@ app.use(router.ReportRouter);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:4200", "https://portal.desarawang.com"], // Ganti dengan URL frontend Anda
+    origin: ["http://localhost:4200", "https://portal.desarawang.com", "https://www.portal.desarawang.com"], // Ganti dengan URL frontend Anda
     methods: ["GET", "POST"],
     credentials: true,
   },
