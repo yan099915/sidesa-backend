@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const transporter = require("../common/emailTransporter");
 const emailLayout = require("./EmailLayout");
 const services = require("../services");
+const logger = require("../common/logger");
 const { ENV, SECRET_KEY } = process.env;
 
 module.exports = {
