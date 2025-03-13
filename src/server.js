@@ -10,6 +10,7 @@ const bodyParser = require("body-parser");
 // Import router here
 const router = require("./routes");
 const path = require("path");
+const { logger } = require("./common/emailTransporter");
 
 console.log(__dirname, "dirname");
 const app = express();
@@ -20,7 +21,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: ["http://localhost:4200", "http://localhost:4300", "https://portal.sidera.my.id", "https://sidera.my.id"], // Ganti dengan URL frontend Anda
+    origin: ["http://localhost:4200", "http://localhost:4300", "https://portal.desarawang.com", "https://desarawang.com"], // Ganti dengan URL frontend Anda
     credentials: true, // Mengizinkan pengiriman cookie
   })
 );
@@ -46,7 +47,7 @@ app.use(router.ReportRouter);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:4200", "https://portal.sidera.my.id"], // Ganti dengan URL frontend Anda
+    origin: ["http://localhost:4200", "https://portal.desarawang.com"], // Ganti dengan URL frontend Anda
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -70,6 +71,7 @@ io.on("connection", (socket) => {
 
 const { PORT = 3000, NODE_ENV } = process.env;
 server.listen(PORT, () => {
+  logger("info", `Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
   console.log(`Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
 });
 
