@@ -189,6 +189,7 @@ module.exports = {
         res.status(401).send({ error: true, message: "Invalid email or password", data: { active: false } });
       }
     } catch (error) {
+      logger.error(`ERROR LOGIN: ${error}`);
       console.log(error, "error");
       res.status(500).send({ error: true, message: "Internal server error" });
     }
