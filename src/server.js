@@ -71,7 +71,7 @@ io.on("connection", (socket) => {
 
 const { PORT = 3000, NODE_ENV } = process.env;
 server.listen(PORT, () => {
-  logger.info(`Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
+  // logger.info(`Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
   console.log(`Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
 });
 

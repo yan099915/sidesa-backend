@@ -1,8 +1,12 @@
 const fs = require("fs");
+const logger = require("../common/logger");
 require("dotenv").config();
 const { DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD, DB_DIALECT, DB_PORT } = process.env;
 
 console.log(DB_HOST, DB_NAME, DB_USERNAME, DB_PASSWORD, DB_DIALECT, DB_PORT);
+logger.info(
+  `DB_HOST: ${DB_HOST} DB_NAME: ${DB_NAME} DB_USERNAME: ${DB_USERNAME} DB_PASSWORD: ${DB_PASSWORD} DB_DIALECT: ${DB_DIALECT} DB_PORT: ${DB_PORT}`
+);
 module.exports = {
   development: {
     username: DB_USERNAME,

@@ -40,7 +40,7 @@ sequelize
     logger.info("CONNECTION_SUCCESS");
   })
   .catch((err) => {
-    logger.error("FAILED_TO_CONNECT ", err);
+    logger.error(`ERROR CONNECTION DB ${err}`);
     console.log("FAILED_TO_CONNECT ", err);
   });
 
