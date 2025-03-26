@@ -58,6 +58,7 @@ module.exports = {
           logger.info(`Email sent: ${info.response}`);
         })
         .catch((error) => {
+          logger.info(`${EMAIL_USER}, ${email}, ${verificationUrl}`);
           logger.error(`Error sending email: ${error}`);
           console.error("Error sending email: ", error);
         });
