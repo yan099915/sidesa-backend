@@ -51,13 +51,16 @@ module.exports = {
       };
 
       // Send verification email
-      transporter.sendMail(message);
-      // .then((info) => {
-      //   console.log("Email sent: ", info.response);
-      // })
-      // .catch((error) => {
-      //   console.error("Error sending email: ", error);
-      // });
+      transporter
+        .sendMail(message)
+        .then((info) => {
+          console.log("Email sent: ", info.response);
+          logger.info(`Email sent: ${info.response}`);
+        })
+        .catch((error) => {
+          logger.error(`Error sending email: ${error}`);
+          console.error("Error sending email: ", error);
+        });
 
       res.status(201).send({
         error: false,
@@ -65,6 +68,7 @@ module.exports = {
         data: {},
       });
     } catch (error) {
+      logger.error(`ERROR REGISTER: ${error}`);
       res.status(500).send({ error: true, message: "Internal server error" });
     }
   },
