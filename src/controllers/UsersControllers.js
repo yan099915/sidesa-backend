@@ -209,7 +209,7 @@ module.exports = {
       const { email } = req.body;
 
       const findUserByCriteria = await services.users.findUsers({ name: "email", value: email });
-
+      // reset
       // Check if user is not found
       if (!user) {
         return res.status(200).send({ error: false, message: "Password reset success if email correct you will receive in your inbox." });
