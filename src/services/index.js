@@ -1,5 +1,3 @@
-const { report } = require("../routes/UsersRouters");
-
 // services list
 const services = {
   users: require("./UsersServices"),

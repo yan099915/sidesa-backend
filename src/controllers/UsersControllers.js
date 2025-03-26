@@ -4,7 +4,7 @@ const transporter = require("../common/emailTransporter");
 const emailLayout = require("./EmailLayout");
 const services = require("../services");
 const logger = require("../common/logger");
-const { ENV, SECRET_KEY } = process.env;
+const { ENV, SECRET_KEY, EMAIL_USER } = process.env;
 
 module.exports = {
   // Register user
@@ -38,12 +38,13 @@ module.exports = {
       let verificationUrl = "";
       if (ENV === "development") {
         verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
+        ``;
       } else {
-        verificationUrl = `https://portal.sidera.my.id/#/email-verify/${token}`;
+        verificationUrl = `https://desarawang.com/#/email-verify/${token}`;
       }
 
       let message = {
-        from: "noreply@sidera.my.id",
+        from: EMAIL_USER,
         to: email,
         subject: "Sidera account verification",
         html: `${emailLayout(verificationUrl)}`,
@@ -51,6 +52,12 @@ module.exports = {
 
       // Send verification email
       transporter.sendMail(message);
+      // .then((info) => {
+      //   console.log("Email sent: ", info.response);
+      // })
+      // .catch((error) => {
+      //   console.error("Error sending email: ", error);
+      // });
 
       res.status(201).send({
         error: false,
@@ -95,11 +102,11 @@ module.exports = {
       if (ENV === "development") {
         verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
       } else {
-        verificationUrl = `https://portal.sidera.my.id/#/email-verify/${token}`;
+        verificationUrl = `https://desarawang.com/#/email-verify/${token}`;
       }
 
       let message = {
-        from: "noreply@sidera.my.id",
+        from: EMAIL_USER,
         to: email,
         subject: "Sidera account verification",
         html: `${emailLayout(verificationUrl)}`,
@@ -213,7 +220,7 @@ module.exports = {
       if (ENV === "development") {
         resetPasswordUrl = `http://localhost:4200/#/reset-password/${token}`;
       } else {
-        resetPasswordUrl = `https://portal.sidera.my.id/#/reset-password/${token}`;
+        resetPasswordUrl = `https://portal.desarawang.com/#/reset-password/${token}`;
       }
       // Send reset password email
       await transporter.sendMail({
