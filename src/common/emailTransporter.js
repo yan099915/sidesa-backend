@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const logger = require("./logger");
 const { EMAIL_USER, EMAIL_PASS, SMTP_HOST } = process.env;
 
 // Configure Nodemailer transporter
@@ -18,8 +19,10 @@ const transporter = nodemailer.createTransport({
 // Verify transporter connection
 transporter.verify(function (error, success) {
   if (error) {
+    logger.error(`Error verifying transporter: ${EMAIL_USER}, ${EMAIL_PASS}`, error);
     console.error("Error verifying transporter:", error);
   } else {
+    logger.info("Server is ready to take our messages");
     console.log("Server is ready to take our messages");
   }
 });
