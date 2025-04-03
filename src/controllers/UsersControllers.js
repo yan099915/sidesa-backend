@@ -40,7 +40,7 @@ module.exports = {
         verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
         ``;
       } else {
-        verificationUrl = `https://desarawang.com/#/email-verify/${token}`;
+        verificationUrl = `https://portal.desarawang.com/#/email-verify/${token}`;
       }
 
       let message = {
