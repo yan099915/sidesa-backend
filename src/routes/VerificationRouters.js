@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
     if (ENV === "development") {
       cb(null, path.join(__dirname, "../../files/", folder));
     } else {
-      cb(null, path.join(__dirname, "../../../public_html/assets/files/", folder));
+      cb(null, path.join(__dirname, "../../../public_html/portal/assets/files/", folder));
     }
   },
   filename: function (req, file, cb) {
