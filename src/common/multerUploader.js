@@ -3,6 +3,7 @@ const path = require("path");
 const { ENV } = process.env;
 
 const multer = require("multer");
+const { logger } = require("./emailTransporter");
 
 console.log(ENV, "env");
 
@@ -12,8 +13,10 @@ const storage = multer.diskStorage({
     let folder = file.fieldname;
 
     if (ENV === "development") {
+      logger.info("Development mode: ", folder);
       cb(null, path.join(__dirname, "../../files/", folder));
     } else {
+      logger.info("production mode: ", folder);
       cb(null, path.join(__dirname, "../../../public_html/portal/assets/files/", folder));
     }
   },
