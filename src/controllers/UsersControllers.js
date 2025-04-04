@@ -4,7 +4,7 @@ const transporter = require("../common/emailTransporter");
 const emailLayout = require("./EmailLayout");
 const services = require("../services");
 const logger = require("../common/logger");
-const { ENV, SECRET_KEY, EMAIL_USER } = process.env;
+const { ENV, SECRET_KEY, EMAIL_USER, DOMAIN } = process.env;
 
 module.exports = {
   // Register user
@@ -40,7 +40,7 @@ module.exports = {
         verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
         ``;
       } else {
-        verificationUrl = `https://portal.desarawang.com/#/email-verify/${token}`;
+        verificationUrl = `${DOMAIN}/#/email-verify/${token}`;
       }
 
       let message = {
@@ -107,7 +107,7 @@ module.exports = {
       if (ENV === "development") {
         verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
       } else {
-        verificationUrl = `https://desarawang.com/#/email-verify/${token}`;
+        verificationUrl = `${DOMAIN}/#/email-verify/${token}`;
       }
 
       let message = {
@@ -225,7 +225,7 @@ module.exports = {
       if (ENV === "development") {
         resetPasswordUrl = `http://localhost:4200/#/reset-password/${token}`;
       } else {
-        resetPasswordUrl = `https://portal.desarawang.com/#/reset-password/${token}`;
+        resetPasswordUrl = `${DOMAIN}/#/reset-password/${token}`;
       }
       // Send reset password email
       await transporter.sendMail({
