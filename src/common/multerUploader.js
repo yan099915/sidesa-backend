@@ -3,7 +3,7 @@ const path = require("path");
 const { ENV } = process.env;
 
 const multer = require("multer");
-const { logger } = require("./emailTransporter");
+const logger = require("./logger");
 
 console.log(ENV, "env");
 
