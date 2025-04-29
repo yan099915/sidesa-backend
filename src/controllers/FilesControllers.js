@@ -15,7 +15,13 @@ module.exports = {
         return res.status(400).send({ error: true, message: "Invalid file type" });
       }
 
-      const filePath = path.join(__dirname, `../../files/${type}/`, filename);
+      let filePath = "";
+      if (process.env.ENV === "development") {
+        filePath = path.join(__dirname, `../../files/${type}/${filename}`);
+      } else {
+        filePath = path.join(__dirname, `../../../public_html/portal/assets/files/${type}/${filename}`);
+      }
+
       const ivPath = filePath + ".iv";
 
       if (!fs.existsSync(filePath) || !fs.existsSync(ivPath)) {
