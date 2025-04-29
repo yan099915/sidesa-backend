@@ -10,6 +10,7 @@ const ArticleRouter = require("./ArticlesRouters");
 const AnnouncementRouter = require("./AnnouncementRouters");
 const PublicRouter = require("./PublicRouters");
 const ReportRouter = require("./ReportRouters");
+const FileRouter = require("./FileRouters");
 
 // export router
 module.exports = {
@@ -24,4 +25,5 @@ module.exports = {
   AnnouncementRouter,
   PublicRouter,
   ReportRouter,
+  FileRouter,
 };

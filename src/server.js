@@ -51,6 +51,7 @@ app.use(router.ArticleRouter);
 app.use(router.PublicRouter);
 app.use(router.AnnouncementRouter);
 app.use(router.ReportRouter);
+app.use(router.FileRouter);
 
 const io = new Server(server, {
   cors: {
@@ -76,10 +77,10 @@ io.on("connection", (socket) => {
   });
 });
 
-const { PORT = 3000, NODE_ENV } = process.env;
+const { PORT = 3000, ENV } = process.env;
 server.listen(PORT, () => {
   // logger.info(`Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
-  console.log(`Server is running on http://localhost:${PORT} and using ${NODE_ENV} environment`);
+  console.log(`Server is running on http://localhost:${PORT} and using ${ENV} environment`);
 });
 
 // Ekspor io, clients, dan sendMessageToRole agar bisa digunakan di file lain

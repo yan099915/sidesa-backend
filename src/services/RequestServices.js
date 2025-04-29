@@ -399,7 +399,7 @@ module.exports = {
         }`,
         // type: "request",
         status: "unread",
-        url: "/request",
+        url: `/request/details/${criteria.value}`,
       };
 
       const notif = await Notification.create(newNotification, { transaction });

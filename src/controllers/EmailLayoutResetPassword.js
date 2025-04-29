@@ -1,4 +1,4 @@
-const createEmailLayout = (verificationUrl) => {
+const createEmailLayoutResetPassword = (resetPasswordUrl) => {
   return `<!DOCTYPE html>
   <html lang="en">
   
@@ -79,16 +79,14 @@ const createEmailLayout = (verificationUrl) => {
                   <img src="https://portal.desarawang.com/assets/images/logo_sidera_large.png" alt="Logo">
               </div>
               <div class="content">
-                  <h1>Verify your email address</h1>
-                  <p>Please confirm that you want to use this as your Sidera email address. Once it's done, your account
-                      will
-                      be able to start using our services.</p>
+                  <h1>Reset account password</h1>
+                  <p>Click button below to reset your account password.</p>
                   <div class="button">
-                      <a href="${verificationUrl}">Verify Email Address</a>
+                      <a href="${resetPasswordUrl}">Reset Account Password</a>
                   </div>
               </div>
               <div class="footer">
-                  <p>This verification email is valid for 24 hours.</p>
+                  <p>This email is valid for 15 minute.</p>
               </div>
           </div>
       </div>
@@ -97,4 +95,4 @@ const createEmailLayout = (verificationUrl) => {
   </html>`;
 };
 
-module.exports = createEmailLayout;
+module.exports = createEmailLayoutResetPassword;

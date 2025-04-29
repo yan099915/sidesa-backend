@@ -2,9 +2,10 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const transporter = require("../common/emailTransporter");
 const emailLayout = require("./EmailLayout");
+const createEmailLayoutResetPassword = require("./EmailLayoutResetPassword");
 const services = require("../services");
 const logger = require("../common/logger");
-const { ENV, SECRET_KEY, EMAIL_USER, DOMAIN } = process.env;
+const { ENV, SECRET_KEY, SECRET_KEY_PASS_RESET, EMAIL_USER, DOMAIN } = process.env;
 
 module.exports = {
   // Register user
@@ -209,39 +210,72 @@ module.exports = {
   },
 
   // Reset password
-  resetPassword: async (req, res) => {
+  forgotPassword: async (req, res) => {
     try {
       const { email } = req.body;
 
       const findUserByCriteria = await services.users.findUsers({ name: "email", value: email });
-      // reset
+      console.log(findUserByCriteria, "data");
       // Check if user is not found
-      if (!user) {
+      if (!findUserByCriteria) {
         return res.status(200).send({ error: false, message: "Password reset success if email correct you will receive in your inbox." });
       }
       const userId = findUserByCriteria.id;
-      const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "5m" });
-      const resetPasswordUrl = "";
+      const token = jwt.sign({ userId }, SECRET_KEY_PASS_RESET, { expiresIn: "15m" });
+      let resetPasswordUrl = "";
       if (ENV === "development") {
         resetPasswordUrl = `http://localhost:4200/#/reset-password/${token}`;
       } else {
         resetPasswordUrl = `${DOMAIN}/#/reset-password/${token}`;
       }
       // Send reset password email
-      await transporter.sendMail({
+      let message = {
+        from: EMAIL_USER,
         to: email,
-        subject: "Reset your password",
-        html: `<p>Click <a href="${resetPasswordUrl}">here</a> to reset your password.</p>`,
-      });
+        subject: "Sidera account reset password",
+        html: `${createEmailLayoutResetPassword(resetPasswordUrl)}`,
+      };
+
+      // Send reset password email
+      transporter.sendMail(message);
 
       res.status(200).send({
         error: false,
         message: "Password reset success if email correct you will receive in your inbox.",
-        data: resetPasswordUrl,
+        data: {},
       });
     } catch (error) {
       console.error("Error resetting password:", error);
       res.status(500).send({ error: true, message: "Internal server error" });
+    }
+  },
+
+  forgotPasswordCheckSession: async (req, res) => {
+    try {
+      const { token } = req.query;
+      const { userId } = jwt.verify(token, SECRET_KEY_PASS_RESET);
+
+      // check if token is invalid
+      if (!userId) {
+        return res.status(400).send({ error: true, message: "Invalid token", data: {} });
+      }
+
+      // find user by id
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: userId });
+
+      // check if user is not found
+      if (findUserByCriteria === null) {
+        return res.status(404).send({ error: true, message: "User not found", data: {} });
+      }
+
+      res.status(200).send({
+        error: false,
+        message: "Token valid",
+        data: { token: token },
+      });
+    } catch (error) {
+      console.error("Error verifying token:", error);
+      res.status(400).send({ error: true, message: "Invalid token" });
     }
   },
 

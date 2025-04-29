@@ -25,8 +25,12 @@ const storage = multer.diskStorage({
       cb(null, path.join(__dirname, "../../../public_html/portal/assets/files/", folder));
     }
   },
+
   filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname); // Nama file dengan timestamp
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+
+    cb(null, uniqueSuffix + ext); // Nama file dengan timestamp
   },
 });
 

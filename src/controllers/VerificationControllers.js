@@ -1,9 +1,13 @@
 const services = require("../services");
 const logger = require("../common/logger");
 const moment = require("moment");
+const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
+const encryptFile = require("../common/encryptFiles");
+const ENCRYPT_KEY = process.env.SECRET_ENCRYPT_KEY;
 
 module.exports = {
-  // request data verification
   requestDataVerification: async (req, res) => {
     try {
       const {
@@ -31,13 +35,13 @@ module.exports = {
       const foto_ktp = req.files["foto_ktp"] ? req.files["foto_ktp"][0].filename : null;
       const foto_kk = req.files["foto_kk"] ? req.files["foto_kk"][0].filename : null;
 
-      // check if user not found
+      // Check user
       const findUserByCriteria = await services.users.findUsers({ name: "id", value: req.userId });
       if (findUserByCriteria === null) {
         return res.status(404).send({ error: true, message: "User not found", data: {} });
       }
 
-      //check if already user has verified status with the same nomor_ktp or nomor_kk
+      // Check KTP/KK
       const findPenggunaByNomorKtp = await services.users.findVerifiedUsers({ name: "nomor_ktp", value: ktpNumber });
       if (findPenggunaByNomorKtp && findPenggunaByNomorKtp.id !== findUserByCriteria.id) {
         return res.status(400).send({ error: true, message: "Nomor KTP sudah digunakan", data: {} });
@@ -48,7 +52,29 @@ module.exports = {
         return res.status(400).send({ error: true, message: "Nomor KK sudah digunakan", data: {} });
       }
 
-      // insert verification data
+      const key = Buffer.from(ENCRYPT_KEY, "hex");
+      let basePath = "";
+      if (process.env.ENV === "development") {
+        basePath = path.join(__dirname, "../../files/");
+      } else {
+        basePath = path.join(__dirname, "../../../public_html/portal/assets/files/");
+      }
+
+      const filesToEncrypt = [
+        { name: foto_diri, folder: "foto_diri" },
+        { name: foto_ktp, folder: "foto_ktp" },
+        { name: foto_kk, folder: "foto_kk" },
+      ];
+
+      // === Encrypt File ===
+      filesToEncrypt
+        .filter((file) => file.name) // hanya proses file yang ada
+        .forEach((file) => {
+          const filePath = path.join(basePath, file.folder, file.name);
+          encryptFile(filePath, key);
+        });
+
+      // === Insert DB ===
       const insertVerificationData = await services.verification.createVerification({
         foto_diri,
         foto_ktp,
@@ -75,7 +101,13 @@ module.exports = {
         status: 1,
       });
 
-      res.send({ error: false, message: "Request data verification success", data: insertVerificationData });
+      res.send({
+        error: false,
+        message: "Request data verification success",
+        data: {
+          verification: insertVerificationData,
+        },
+      });
     } catch (error) {
       console.log(error, "error requestDataVerification");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });

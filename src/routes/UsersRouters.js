@@ -9,6 +9,8 @@ router.post("/register", usersControllers.register);
 router.get("/verify-email", usersControllers.verifyEmail);
 router.post("/login", usersControllers.login);
 router.post("/resend-email", usersControllers.resendEmail);
+router.post("/forgot-password", usersControllers.forgotPassword);
+router.get("/forgot-password", usersControllers.forgotPasswordCheckSession);
 router.get("/session", middleware.isAuth, usersControllers.sessionToken);
 router.get("/logout", usersControllers.logout);
 router.get("/menu", middleware.isAuth, usersControllers.getMenu);

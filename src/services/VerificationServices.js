@@ -1,6 +1,8 @@
 const { Verification, VerificationStatus, Notification, Penduduk, Pengguna, Keluarga, sequelize } = require("../models/index");
 const { Op, where } = require("sequelize");
 const logger = require("../common/logger");
+const path = require("path");
+const fs = require("fs");
 
 module.exports = {
   // find user by dynamic criteria
@@ -102,7 +104,7 @@ module.exports = {
         return newVerification;
       }
     } catch (error) {
-      console.log(error, "error");
+      // console.log(error, "error");
       return error;
     }
   },
@@ -145,7 +147,7 @@ module.exports = {
 
       // console.log(findPengguna, "findPengguna!!!!!!!!!!!!!!!!!!!!!!!!!");
       if (!findPengguna) {
-        console.log("rollback !!!!!!!!!!!!!!!");
+        // console.log("rollback !!!!!!!!!!!!!!!");
         await transaction.rollback();
         throw new Error("Pengguna not found");
       }
@@ -162,7 +164,7 @@ module.exports = {
       // console.log(findPenggunaByNomorKtp, "findPenggunaByNomorKtp");
 
       if (findPenggunaByNomorKtp && findPenggunaByNomorKtp.id !== findVerification.id_pengguna) {
-        console.log("rollback !!!!!!!!!!!!!!!");
+        // console.log("rollback !!!!!!!!!!!!!!!");
         await transaction.rollback();
         return {
           error: true,
@@ -204,12 +206,12 @@ module.exports = {
 
       // status 2 is accepted
       if (findPenduduk === null && data.status === 2) {
-        console.log("CREATE PENDUDUK");
+        // console.log("CREATE PENDUDUK");
         await Penduduk.create(findVerification.get(), { transaction });
         await Keluarga.create({ nomor_kk: findVerification.nomor_kk, rt: findVerification.rt, rw: findVerification.rw }, { transaction });
       } else if (findPenduduk !== null && data.status === 2) {
         await Keluarga.create({ nomor_kk: findVerification.nomor_kk, rt: findVerification.rt, rw: findVerification.rw }, { transaction });
-        console.log("UPDATE PENDUDUK");
+        // console.log("UPDATE PENDUDUK");
         await Penduduk.update(findVerification.get(), {
           where: {
             nomor_ktp: {
@@ -222,6 +224,19 @@ module.exports = {
 
       // jika requestnya berstatus 2 alias verifikasi sudah di terima
       if (data.status === 2) {
+        // hapus foto diri yang lama dari files jika penduduk sudah ada foto lama
+        if (findPenduduk.foto_diri !== null) {
+          let basePath = "";
+          if (process.env.ENV === "development") {
+            basePath = path.join(__dirname, "../../files/");
+          } else {
+            basePath = path.join(__dirname, "../../../public_html/portal/assets/files/");
+          }
+
+          fs.unlinkSync(`${basePath}foto_diri/${findPenduduk.foto_diri}`);
+          fs.unlinkSync(`${basePath}foto_diri/${findPenduduk.foto_diri}.iv`);
+          // console.log("File berhasil dihapus");
+        }
         await Pengguna.update(
           { verified: true, nomor_ktp: findVerification.nomor_ktp },
           {
@@ -268,7 +283,7 @@ module.exports = {
     } catch (error) {
       await transaction.rollback();
       // logger.info(error);
-      console.log(error, "WERRORNYA");
+      // console.log(error, "WERRORNYA");
       throw error;
     }
   },
