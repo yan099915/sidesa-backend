@@ -3,6 +3,7 @@ const { Op, where } = require("sequelize");
 const logger = require("../common/logger");
 const path = require("path");
 const fs = require("fs");
+const FILE_PATH = process.env.BASE_FILE_PATH;
 
 module.exports = {
   // find user by dynamic criteria
@@ -226,12 +227,7 @@ module.exports = {
       if (data.status === 2) {
         // hapus foto diri yang lama dari files jika penduduk sudah ada foto lama
         if (findPenduduk.foto_diri !== null) {
-          let basePath = "";
-          if (process.env.ENV === "development") {
-            basePath = path.join(__dirname, "../../files/");
-          } else {
-            basePath = path.join(__dirname, "../../../public_html/portal/assets/files/");
-          }
+          let basePath = path.join(__dirname, FILE_PATH);
 
           fs.unlinkSync(`${basePath}foto_diri/${findPenduduk.foto_diri}`);
           fs.unlinkSync(`${basePath}foto_diri/${findPenduduk.foto_diri}.iv`);

@@ -6,6 +6,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const encryptFile = require("../common/encryptFiles");
 const ENCRYPT_KEY = process.env.SECRET_ENCRYPT_KEY;
+const FILE_PATH = process.env.BASE_FILE_PATH;
 
 module.exports = {
   requestDataVerification: async (req, res) => {
@@ -53,17 +54,12 @@ module.exports = {
       }
 
       const key = Buffer.from(ENCRYPT_KEY, "hex");
-      let basePath = "";
-      if (process.env.ENV === "development") {
-        basePath = path.join(__dirname, "../../files/");
-      } else {
-        basePath = path.join(__dirname, "../../../public_html/portal/assets/files/");
-      }
+      let basePath = path.join(__dirname, FILE_PATH);
 
       const filesToEncrypt = [
-        { name: foto_diri, folder: "foto_diri" },
         { name: foto_ktp, folder: "foto_ktp" },
         { name: foto_kk, folder: "foto_kk" },
+        { name: foto_diri, folder: "foto_diri" },
       ];
 
       // === Encrypt File ===
