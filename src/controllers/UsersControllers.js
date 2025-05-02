@@ -36,13 +36,7 @@ module.exports = {
 
       // Generate verification token
       const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "24h" });
-      let verificationUrl = "";
-      if (ENV === "development") {
-        verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
-        ``;
-      } else {
-        verificationUrl = `${DOMAIN}/#/email-verify/${token}`;
-      }
+      let verificationUrl = (verificationUrl = `${DOMAIN}/#/email-verify/${token}`);
 
       let message = {
         from: EMAIL_USER,
@@ -104,12 +98,7 @@ module.exports = {
 
       // Generate verification token
       const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "24h" });
-      let verificationUrl = "";
-      if (ENV === "development") {
-        verificationUrl = `http://localhost:4200/#/email-verify/${token}`;
-      } else {
-        verificationUrl = `${DOMAIN}/#/email-verify/${token}`;
-      }
+      let verificationUrl = `${DOMAIN}/#/email-verify/${token}`;
 
       let message = {
         from: EMAIL_USER,
@@ -222,12 +211,8 @@ module.exports = {
       }
       const userId = findUserByCriteria.id;
       const token = jwt.sign({ userId }, SECRET_KEY_PASS_RESET, { expiresIn: "15m" });
-      let resetPasswordUrl = "";
-      if (ENV === "development") {
-        resetPasswordUrl = `http://localhost:4200/#/reset-password/${token}`;
-      } else {
-        resetPasswordUrl = `${DOMAIN}/#/reset-password/${token}`;
-      }
+      let resetPasswordUrl = `${DOMAIN}/#/reset-password/${token}`;
+
       // Send reset password email
       let message = {
         from: EMAIL_USER,
@@ -250,7 +235,7 @@ module.exports = {
     }
   },
 
-  forgotPasswordCheckSession: async (req, res) => {
+  forgotPasswordCheckToken: async (req, res) => {
     try {
       const { token } = req.query;
       const { userId } = jwt.verify(token, SECRET_KEY_PASS_RESET);
@@ -271,13 +256,104 @@ module.exports = {
       res.status(200).send({
         error: false,
         message: "Token valid",
-        data: { token: token },
+        data: {},
       });
     } catch (error) {
-      console.error("Error verifying token:", error);
+      // console.error("Error verifying token:", error);
       res.status(400).send({ error: true, message: "Invalid token" });
     }
   },
+
+  // Reset password
+  resetPassword: async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      const { userId } = jwt.verify(token, SECRET_KEY_PASS_RESET);
+
+      console.log(userId, "userId");
+      // check if token is invalid
+      if (!userId) {
+        return res.status(400).send({ error: true, message: "Invalid token", data: {} });
+      }
+      // find user by id
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: userId });
+      // check if user is not found
+      if (findUserByCriteria === null) {
+        return res.status(404).send({ error: true, message: "User not found", data: {} });
+      }
+      // check if password is empty
+      if (!password) {
+        return res.status(400).send({ error: true, message: "Password is empty", data: {} });
+      }
+      // hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      // update password
+      const updatePassword = await services.users.updateUser({ name: "id", value: userId }, { password: hashedPassword });
+      // check if update password is success
+      if (updatePassword === null) {
+        return res.status(500).send({ error: true, message: "Internal server error", data: {} });
+      }
+      // remove session token
+      res.clearCookie("sessionToken");
+      // send response
+      res.status(200).send({
+        error: false,
+        message: "Password reset success",
+        data: {},
+      });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      res.status(400).send({ error: true, message: "Invalid token" });
+    }
+  },
+
+  //change password
+  updatePassword: async (req, res) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      const userId = req.userId;
+
+      // check if old password and new password is empty
+      if (!oldPassword || !newPassword) {
+        return res.status(400).send({ error: true, message: "Old password or new password is empty", data: {} });
+      }
+
+      // find user by id
+      const findUserByCriteria = await services.users.findUsers({ name: "id", value: userId });
+
+      // check if user is not found
+      if (findUserByCriteria === null) {
+        return res.status(404).send({ error: true, message: "User not found", data: {} });
+      }
+
+      // compare old password with hashed password
+      const passwordMatch = await bcrypt.compare(oldPassword, findUserByCriteria.password);
+      if (!passwordMatch) {
+        return res.status(401).send({ error: true, message: "Old password is incorrect", data: {} });
+      }
+
+      // hash new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+      // update password
+      const updatePassword = await services.users.updateUser({ name: "id", value: userId }, { password: hashedNewPassword });
+
+      // check if update password is success
+      if (updatePassword === null) {
+        return res.status(500).send({ error: true, message: "Internal server error", data: {} });
+      }
+
+      res.status(200).send({
+        error: false,
+        message: "Change password success",
+        data: {},
+      });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).send({ error: true, message: "Internal server error" });
+    }
+  },
+  // update password end here
 
   // check user session token validity
   sessionToken: async (req, res) => {
