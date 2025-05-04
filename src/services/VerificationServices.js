@@ -226,7 +226,9 @@ module.exports = {
       // jika requestnya berstatus 2 alias verifikasi sudah di terima
       if (data.status === 2) {
         // hapus foto diri yang lama dari files jika penduduk sudah ada foto lama
-        if (findPenduduk.foto_diri !== null) {
+
+        console.log(findPenduduk, "findPenduduk.foto_diri");
+        if (findPenduduk && findPenduduk.foto_diri !== null) {
           let basePath = path.join(__dirname, FILE_PATH);
 
           fs.unlinkSync(`${basePath}foto_diri/${findPenduduk.foto_diri}`);
@@ -234,7 +236,7 @@ module.exports = {
           // console.log("File berhasil dihapus");
         }
         await Pengguna.update(
-          { verified: true, nomor_ktp: findVerification.nomor_ktp },
+          { verified: true, nomor_kk: findVerification.nomor_kk, nomor_ktp: findVerification.nomor_ktp },
           {
             where: {
               id: {
