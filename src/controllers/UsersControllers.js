@@ -36,7 +36,7 @@ module.exports = {
 
       // Generate verification token
       const token = jwt.sign({ userId }, SECRET_KEY, { expiresIn: "24h" });
-      let verificationUrl = (verificationUrl = `${DOMAIN}/#/email-verify/${token}`);
+      let verificationUrl = `${DOMAIN}/#/email-verify/${token}`;
 
       let message = {
         from: EMAIL_USER,
