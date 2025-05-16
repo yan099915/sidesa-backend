@@ -42,12 +42,13 @@ module.exports = {
         return res.status(404).send({ error: true, message: "User not found", data: {} });
       }
 
-      // Check KTP/KK
+      // Check KTP
       const findPenggunaByNomorKtp = await services.users.findVerifiedUsers({ name: "nomor_ktp", value: ktpNumber });
       if (findPenggunaByNomorKtp && findPenggunaByNomorKtp.id !== findUserByCriteria.id) {
         return res.status(400).send({ error: true, message: "Nomor KTP sudah digunakan", data: {} });
       }
 
+      // Check KK
       const findPenggunaByNomorKK = await services.users.findVerifiedUsers({ name: "nomor_kk", value: kkNumber });
       if (findPenggunaByNomorKK && findPenggunaByNomorKK.id !== findUserByCriteria.id) {
         return res.status(400).send({ error: true, message: "Nomor KK sudah digunakan", data: {} });
@@ -105,7 +106,7 @@ module.exports = {
         },
       });
     } catch (error) {
-      console.log(error, "error requestDataVerification");
+      // console.log(error, "error requestDataVerification");
       res.status(500).send({ error: true, message: "Internal server error", data: {} });
     }
   },
@@ -181,13 +182,27 @@ module.exports = {
         return res.status(404).send({ error: true, message: "Verification data not found", data: {} });
       }
 
+      // console.log(findVerificationByCriteria, "findVerificationByCriteria", findVerificationByCriteria.nomor_kk);
+
+      // Check KTP
+      const findPenggunaByNomorKtp = await services.users.findVerifiedUsers({ name: "nomor_ktp", value: findVerificationByCriteria.nomor_ktp });
+      if (findPenggunaByNomorKtp && findPenggunaByNomorKtp.id !== findVerificationByCriteria.id_pengguna) {
+        return res.status(400).send({ error: true, message: "Nomor KTP sudah digunakan", data: {} });
+      }
+
+      // Check KK
+      const findPenggunaByNomorKK = await services.users.findVerifiedUsers({ name: "nomor_kk", value: findVerificationByCriteria.nomor_kk });
+      if (findPenggunaByNomorKK && findPenggunaByNomorKK.nomor_ktp !== findVerificationByCriteria.nomor_ktp) {
+        return res.status(400).send({ error: true, message: "Nomor KK sudah digunakan", data: {} });
+      }
+
       const data = { id: id, status: status, notes: notes, agent_id: req.userId };
       const updateVerificationData = await services.verification.updateVerification(data);
       const newNotificationUser = services.socket.sendNotification(findVerificationByCriteria.id_pengguna, "new_notification");
       // logger.info(`${updateVerificationData} "updateVerificationData"`);
       res.status(200).send({ error: false, message: "Verification data updated", data: updateVerificationData });
     } catch (error) {
-      console.log(error, "ERRORRRR approveVerification");
+      // console.log(error, "ERRORRRR approveVerification");
       res.status(500).send({ error: true, message: "Internal server error", data: error });
     }
   },

@@ -34,7 +34,7 @@ module.exports = {
       });
 
       const residents = await Penduduk.findAll({
-        attributes: ["id", "nama", "nomor_ktp", "nomor_kk", "dusun"], // Ensure these attributes are included
+        attributes: ["id", "verified", "nama", "nomor_ktp", "nomor_kk", "dusun"], // Ensure these attributes are included
         order: [["created_at", "DESC"]],
         limit: Number(pageSize),
         offset: Number(offset),

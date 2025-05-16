@@ -174,6 +174,7 @@ module.exports = {
         attributes: ["id", "title", "author_id", "status", "thumbnail", "created_at", "updated_at"],
         where: {
           featured: 1,
+          status: 2,
         },
         include: [
           {

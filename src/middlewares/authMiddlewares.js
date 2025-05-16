@@ -32,11 +32,11 @@ module.exports = {
         req.userId = decoded.userId;
         next();
       } else {
-        console.log("masuk ke beda");
+        // console.log("masuk ke beda");
         return res.status(401).send({ error: true, message: "Unauthorized" });
       }
     } catch (error) {
-      console.log(error, "error isAuth");
+      // console.log(error, "error isAuth");
       return res.status(401).send({ error: true, message: "Unauthorized" });
     }
   },

@@ -208,12 +208,19 @@ module.exports = {
       // status 2 is accepted
       if (findPenduduk === null && data.status === 2) {
         // console.log("CREATE PENDUDUK");
-        await Penduduk.create(findVerification.get(), { transaction });
+        // add verified value 1 to findVerification
+        let data = findVerification.get({ plain: true });
+        data.verified = 1;
+        // console.log(data, "data penduduk pertama");
+        await Penduduk.create(data, { transaction });
         await Keluarga.create({ nomor_kk: findVerification.nomor_kk, rt: findVerification.rt, rw: findVerification.rw }, { transaction });
       } else if (findPenduduk !== null && data.status === 2) {
         await Keluarga.create({ nomor_kk: findVerification.nomor_kk, rt: findVerification.rt, rw: findVerification.rw }, { transaction });
         // console.log("UPDATE PENDUDUK");
-        await Penduduk.update(findVerification.get(), {
+        let data = findVerification.get({ plain: true });
+        data.verified = 1;
+        // console.log(data, "data penduduk kedua");
+        await Penduduk.update(data, {
           where: {
             nomor_ktp: {
               [Op.eq]: findVerification.nomor_ktp,
@@ -227,7 +234,7 @@ module.exports = {
       if (data.status === 2) {
         // hapus foto diri yang lama dari files jika penduduk sudah ada foto lama
 
-        console.log(findPenduduk, "findPenduduk.foto_diri");
+        // console.log(findPenduduk, "findPenduduk.foto_diri");
         if (findPenduduk && findPenduduk.foto_diri !== null) {
           let basePath = path.join(__dirname, FILE_PATH);
 

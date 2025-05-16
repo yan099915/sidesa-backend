@@ -35,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         autoIncrement: true,
       },
+      verified: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
       foto_diri: {
         type: DataTypes.STRING,
         // allowNull: false,

@@ -4,8 +4,11 @@ const { Op, where } = require("sequelize");
 module.exports = {
   getPortalReports: async (year) => {
     try {
+      const date = new Date();
+      // get current year
+      const currentYear = date.getFullYear();
       // Count data per month in specific year using sequelize
-      const yearFilter = year ? year : 2024;
+      const yearFilter = year ? year : currentYear;
       const RequestData = await Pengajuan.findAll({
         attributes: [
           [Sequelize.fn("MONTH", Sequelize.col("created_at")), "month"],
