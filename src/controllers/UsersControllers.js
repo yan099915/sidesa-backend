@@ -438,7 +438,11 @@ module.exports = {
       if (getUserMenu === null) {
         return res.status(404).send({ error: true, message: "Menu not found", data: {} });
       }
-
+      // if role is 3 delete menu index 1
+      if (findUserByCriteria.role === 3) {
+        getUserMenu.splice(1, 1);
+      }
+      // console.log(getUserMenu[1], "getUserMenu");
       res.status(200).send({
         error: false,
         message: "Get menu success",
